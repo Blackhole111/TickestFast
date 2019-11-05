@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:ticket_pass_package/dash_separator.dart';
 import 'package:ticket_pass_package/ticket_pass.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_core/firebase_core.dart';
+
 
 void main() {
   runApp(new MaterialApp(
@@ -16,6 +19,7 @@ class MyApp extends StatelessWidget {
 
   final TextEditingController controller = new TextEditingController();
   final TextEditingController controller1 = new TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +27,7 @@ class MyApp extends StatelessWidget {
       body: new Container(
         color: Colors.cyanAccent,
         padding: const EdgeInsets.only(top: 40.0),
-        child: new Column(
+        child: new ListView(
           children: <Widget>[
             new Row(
               children: <Widget>[
@@ -47,6 +51,7 @@ class MyApp extends StatelessWidget {
             ),
             new Text(
               "Login\n",
+              textAlign: TextAlign.center,
               style: TextStyle(
                   fontSize: 20.0,
                   fontWeight: FontWeight.bold,
@@ -59,33 +64,35 @@ class MyApp extends StatelessWidget {
                 child: new Column(
                   children: <Widget>[
                     new TextField(
-                      decoration: new InputDecoration(labelText: "Usuario", icon: Icon(Icons.account_circle)),
-                      onChanged: (String valor) {user = valor;},
+                      decoration: new InputDecoration(
+                          labelText: "Usuario",
+                          icon: Icon(Icons.account_circle)),
+                      onChanged: (String valor) {
+                        user = valor;
+                      },
                       controller: controller,
                     ),
                     new TextField(
-                      decoration: new InputDecoration(labelText: "Contraseña", icon: Icon(Icons.lock)),
-                      onChanged: (String valor) {contrasena = valor;},
+                      decoration: new InputDecoration(
+                          labelText: "Contraseña", icon: Icon(Icons.lock)),
+                      onChanged: (String valor) {
+                        contrasena = valor;
+                      },
                       obscureText: true,
                       controller: controller1,
                     ),
                     const SizedBox(height: 30),
                     new RaisedButton(
                       onPressed: () {
-                        if(user=="admin" && contrasena=="1234"){
+                        if (user == 'admin' && contrasena == '1234'){
                           Navigator.push(
-                            context,
-                            new MaterialPageRoute(
-                                builder: (context) => new administrador()));
+                          context,
+                          new MaterialPageRoute(
+                              builder: (context) => new administrador()));
                         }
                         else{
-                          Navigator.push(
-                            context,
-                            new MaterialPageRoute(
-                                builder: (context) => new usuario()));
+                          login(context);
                         }
-                        controller.text = "";
-                        controller1.text = "";
                       },
                       textColor: Colors.white,
                       padding: const EdgeInsets.only(top: 20.0),
@@ -108,29 +115,9 @@ class MyApp extends StatelessWidget {
                 ),
               ),
             ),
-            new Text("\n Entra con:"),
             new Container(
               child: new Column(
                 children: <Widget>[
-                  new Center(
-                    child: new Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        new IconButton(
-                          icon: new Icon(
-                            FontAwesomeIcons.google,
-                          ),
-                          color: Colors.redAccent,
-                          onPressed: () {},
-                        ),
-                        new IconButton(
-                          icon: new Icon(FontAwesomeIcons.facebook),
-                          color: Colors.blueAccent,
-                          onPressed: () {},
-                        ),
-                      ],
-                    ),
-                  ),
                   new Padding(
                     padding: const EdgeInsets.only(top: 20.0),
                   ),
@@ -151,9 +138,44 @@ class MyApp extends StatelessWidget {
       ),
     );
   }
+
+  login(BuildContext context) async {
+    FirebaseUser user;
+    try {
+      user = (await _auth.signInWithEmailAndPassword(
+          email: controller.text, password: controller1.text)).user;
+    } catch (e) {
+      print(e.toString());
+    } finally {
+      if (user != null) {
+        // sign in successful!
+        Navigator.push(
+                          context,
+                          new MaterialPageRoute(
+                              builder: (context) => new usuario()));
+      } else {
+        // sign in unsuccessful
+        print('sign in Not');
+        // ex: prompt the user to try again
+      }
+    
+
+    contrasena = "";
+    controller.text = "";
+    controller1.text = "";
+  }
+  }
 }
 
 class registro extends StatelessWidget {
+  final _nameController = TextEditingController();
+  final _correoController = TextEditingController();
+  final _passController = TextEditingController();
+  final _cpassController = TextEditingController();
+  final _codController = TextEditingController();
+
+  final FirebaseAuth _auth =FirebaseAuth.instance;
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
@@ -161,61 +183,49 @@ class registro extends StatelessWidget {
         title: new Text("Registro"),
         backgroundColor: Colors.blueAccent,
       ),
-      body: new Container(
-        child: new Column(
+      body: ListView(
           children: <Widget>[
-            new Text(
-              "\nRegistrece ",
-              style: TextStyle(fontSize: 20.0),
+            TextField(
+              decoration: InputDecoration(hintText: "Nombre Completo"),
+              controller: _nameController,
             ),
-            new TextField(
-              decoration: new InputDecoration(labelText: "Nombre Completo"),
+            TextField(
+              decoration: InputDecoration(hintText: "Correo Electronico"),
+              controller: _correoController,
             ),
-            new TextField(
-              decoration: new InputDecoration(labelText: "Usuario"),
+            TextField(
+              decoration: InputDecoration(hintText: "Contraseña"),
+              controller: _passController,
             ),
-            new TextField(
-              decoration: new InputDecoration(labelText: "Contraseña"),
+            TextField(
+              decoration: InputDecoration(hintText: "Repetir Contraseña"),
+              controller: _cpassController,
             ),
-            new Text(
-              "\nO con Redes Sociales",
-              style: TextStyle(fontSize: 20.0),
+            TextField(
+              decoration: InputDecoration(hintText: "Codigo del administrador"),
+              controller: _codController,
             ),
-            new Container(
-              child: new Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  new IconButton(
-                    icon: new Icon(
-                      FontAwesomeIcons.google,
-                    ),
-                    color: Colors.redAccent,
-                    onPressed: () {},
-                  ),
-                  new IconButton(
-                    icon: new Icon(FontAwesomeIcons.facebook),
-                    color: Colors.blueAccent,
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-            ),
-            new Text(
-              "\nImportante: ",
-              style: TextStyle(fontSize: 20.0),
-            ),
-            new TextField(
-              decoration:
-                  new InputDecoration(labelText: "Codigo del Administrador"),
-            ),
+            RaisedButton(
+              onPressed: () {register();},
+              child: Text("Registrarse"),
+            )
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: new Icon(FontAwesomeIcons.plus),
-        onPressed: () {},
-      ),
     );
+  }
+  register() async {
+    if(true){
+      final FirebaseUser user = (await _auth.createUserWithEmailAndPassword(
+      email: _correoController.text,
+      password: _passController.text,
+    )).user;
+    /*if (user != null) {
+      print("Se realizo perfectamente");
+    } else {
+      print("Vuelva a intentarlo");
+    }*/
+
+    }
   }
 }
 
@@ -550,7 +560,7 @@ class _registroTicketState extends State<registroTicket> {
   @override
   Widget build(BuildContext context) {
     return new Container(
-      child: Column(
+      child: ListView(
         children: <Widget>[
           ListTile(
             title: Text("Chofer:"),
@@ -616,12 +626,16 @@ class _registroTicketState extends State<registroTicket> {
           ),
           Text(
             "Tickets Guardados",
+            textAlign: TextAlign.center,
             style: TextStyle(fontSize: 20.0),
           ),
-          Text("Para borrar un horario pulse"),
-            Column(
-              children: listaitem(),
-            ),
+          Text(
+            "Para borrar un horario pulse",
+            textAlign: TextAlign.center,
+          ),
+          Column(
+            children: listaitem(),
+          ),
         ],
       ),
     );
@@ -656,6 +670,130 @@ class detalles extends StatefulWidget {
 class _detallesState extends State<detalles> {
   @override
   Widget build(BuildContext context) {
-    return new Container();
+    return new Container(
+      child: ListView(
+        children: <Widget>[
+          Card(
+            child: Column(
+              children: <Widget>[
+                Text(
+                  "Choferes",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 20.0),
+                ),
+                TextField(
+                  decoration:
+                      InputDecoration(hintText: "Inserte el nombre del Chofer"),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 40.0),
+                ),
+                Column(
+                  children: <Widget>[],
+                )
+              ],
+            ),
+          ),
+          Divider(
+            color: Colors.blueAccent,
+            thickness: 5.0,
+          ),
+          Card(
+            child: Column(
+              children: <Widget>[
+                Text(
+                  "Horario",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 20.0),
+                ),
+                TextField(
+                  decoration: InputDecoration(hintText: "Inserte el horario"),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 40.0),
+                ),
+                Column(
+                  children: <Widget>[],
+                )
+              ],
+            ),
+          ),
+          Divider(
+            color: Colors.blueAccent,
+            thickness: 5.0,
+          ),
+          Card(
+            child: Column(
+              children: <Widget>[
+                Text(
+                  "Ruta",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 20.0),
+                ),
+                TextField(
+                  decoration: InputDecoration(hintText: "Inserte la ruta"),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 40.0),
+                ),
+                Column(
+                  children: <Widget>[],
+                )
+              ],
+            ),
+          ),
+          Divider(
+            color: Colors.blueAccent,
+            thickness: 5.0,
+          ),
+          Card(
+            child: Column(
+              children: <Widget>[
+                Text(
+                  "Precio",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 20.0),
+                ),
+                TextField(
+                  decoration: InputDecoration(hintText: "Inserte el precio"),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 40.0),
+                ),
+                Text(
+                  "Precio: RD\$70.00 Pesos",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          Divider(
+            color: Colors.blueAccent,
+            thickness: 5.0,
+          ),
+          Card(
+            child: Column(
+              children: <Widget>[
+                Text(
+                  "Codigo",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 20.0),
+                ),
+                TextField(
+                  decoration: InputDecoration(hintText: "Inserte el Codigo"),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 40.0),
+                ),
+                Text(
+                  "Codigo: 8020",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
   }
 }
